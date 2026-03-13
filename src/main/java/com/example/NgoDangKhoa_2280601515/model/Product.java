@@ -26,6 +26,7 @@ public class Product {
 
     private double oldPrice;
     private double discount;
+    private Integer quantity;
     private String link;
 
     @Transient

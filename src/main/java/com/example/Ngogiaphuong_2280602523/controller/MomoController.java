@@ -106,12 +106,6 @@ public class MomoController {
                         order.setStatus(OrderStatus.CONFIRMED);
                         orderRepository.save(order);
                         model.addAttribute("message", "Thanh toán thành công. Đơn hàng đã được lưu!");
-                        
-                        if (amount != null && !amount.isEmpty()) {
-                            long amountValue = Long.parseLong(amount);
-                            long points = (amountValue / 15000) * 2;
-                            model.addAttribute("points", points);
-                        }
                     } else {
                         order.setStatus(OrderStatus.CANCELLED);
                         orderRepository.save(order);

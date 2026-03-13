@@ -111,7 +111,12 @@
 
             <div class="form-group">
                 <label>Phần trăm giảm (%):</label>
-                <input type="number" id="discount" placeholder="20">
+                <input type="number" id="discount" placeholder="20" oninput="toggleQuantity(this.value)">
+            </div>
+            
+            <div class="form-group" id="quantityGroup" style="display: none;">
+                <label>Số lượng (cho sản phẩm có giảm giá):</label>
+                <input type="number" id="quantity" placeholder="Ví dụ: 50">
             </div>
 
             <div class="form-group">
@@ -250,6 +255,8 @@
             document.getElementById('discount').value = product.discount || '';
             document.getElementById('category').value = product.category || '';
             document.getElementById('promotion').checked = !!product.promotion;
+            document.getElementById('quantity').value = product.quantity || '';
+            toggleQuantity(product.discount || '');
             document.getElementById('imageFile').value = ''; // clear file selection
 
             const previewContainer = document.getElementById('imagePreviewContainer');
@@ -273,6 +280,7 @@
             document.getElementById('addProductForm').reset();
             document.getElementById('imagePreviewContainer').style.display = 'none';
             document.getElementById('previewImg').src = '';
+            document.getElementById('quantityGroup').style.display = 'none';
         }
 
         document.getElementById('addProductForm').addEventListener('submit', async function (e) {
@@ -310,6 +318,7 @@
                     price: parseFloat(document.getElementById('price').value) || 0,
                     oldPrice: parseFloat(document.getElementById('oldPrice').value) || 0,
                     discount: parseFloat(document.getElementById('discount').value) || 0,
+                    quantity: parseInt(document.getElementById('quantity').value) || 0,
                     category: document.getElementById('category').value,
                     promotion: document.getElementById('promotion').checked,
                 };
@@ -351,6 +360,16 @@
         // Initial render
         loadCategories();
         renderTable();
+        
+        function toggleQuantity(val) {
+            const qtyGroup = document.getElementById('quantityGroup');
+            if (val && parseFloat(val) > 0) {
+                qtyGroup.style.display = 'block';
+            } else {
+                qtyGroup.style.display = 'none';
+                document.getElementById('quantity').value = '';
+            }
+        }
     </script>
 </body>
 

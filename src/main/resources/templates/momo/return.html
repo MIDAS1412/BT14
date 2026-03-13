@@ -1,32 +1,193 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kết quả thanh toán MoMo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+        }
+        .success-icon {
+            color: #22c55e;
+            font-size: 70px;
+            margin-bottom: 20px;
+        }
+        .error-icon {
+            color: #ef4444;
+            font-size: 70px;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+        .sub-message {
+            color: #64748b;
+            font-size: 15px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .details {
+            text-align: left;
+            margin-top: 20px;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .details-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px dashed #cbd5e1;
+        }
+        .details-label {
+            color: #64748b;
+        }
+        .details-value {
+            font-weight: 600;
+            color: #334155;
+            text-align: right;
+            word-break: break-all;
+            padding-left: 15px;
+        }
+        .amount-value {
+            color: #e11d48;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .points-box {
+            margin-top: 25px;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #fde68a;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            gap: 15px;
+            box-shadow: 0 4px 6px -1px rgba(253, 230, 138, 0.5);
+            animation: popIn 0.5s ease-out;
+        }
+        .points-icon {
+            background: #f59e0b;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .points-text {
+            flex-grow: 1;
+        }
+        .points-title {
+            color: #b45309;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .points-desc {
+            color: #d97706;
+            font-size: 13px;
+        }
+        .btn-home {
+            display: block;
+            margin-top: 35px;
+            padding: 16px;
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header text-center">
-                    <h3>Kết quả giao dịch MoMo</h3>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info text-center" role="alert" th:text="${message}"></div>
-
-                    <p><strong>Mã đơn hàng:</strong> <span th:text="${orderId}"></span></p>
-                    <p><strong>Số tiền:</strong> <span th:text="${amount}"></span> VNĐ</p>
-                    <p><strong>Thông tin:</strong> <span th:text="${orderInfo}"></span></p>
-
-                    <div class="text-center mt-4">
-                        <a href="/orders" class="btn btn-primary">Quay lại danh sách đơn hàng</a>
-                    </div>
-                </div>
+    <div class="container">
+        <!-- Success State -->
+        <div th:if="${param.resultCode != null and param.resultCode[0] == '0'}">
+            <i class="fas fa-check-circle success-icon"></i>
+            <div class="message">Thanh toán thành công!</div>
+            <div class="sub-message" th:text="${message}">Đơn hàng của bạn đã được thanh toán và ghi nhận trên hệ thống.</div>
+        </div>
+        
+        <!-- Error State -->
+        <div th:if="${param.resultCode == null or param.resultCode[0] != '0'}">
+            <i class="fas fa-times-circle error-icon"></i>
+            <div class="message">Thanh toán thất bại</div>
+            <div class="sub-message" th:text="${message}">Đã có lỗi xảy ra hoặc giao dịch đã bị huỷ. Vui lòng thử lại.</div>
+        </div>
+        
+        <div class="details">
+            <div class="details-row">
+                <span class="details-label">Mã giao dịch</span>
+                <span class="details-value" th:text="${orderId}"></span>
+            </div>
+            <div class="details-row">
+                <span class="details-label">Nội dung</span>
+                <span class="details-value" th:text="${orderInfo}"></span>
+            </div>
+            <div class="details-row">
+                <span class="details-label">Tổng tiền</span>
+                <span class="details-value amount-value">
+                    <span th:if="${amount != null && amount != ''}" th:text="${amount} + ' ₫'"></span>
+                </span>
             </div>
         </div>
+        
+        <!-- Bonus Points Feature -->
+        <div class="points-box" th:if="${points != null and points > 0}">
+            <div class="points-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <div class="points-text">
+                <div class="points-title">Chúc mừng! Bạn được tích <span th:text="${points}"></span> điểm thưởng</div>
+                <div class="points-desc">Chương trình ưu đãi (2đ thường = 15.000₫)</div>
+            </div>
+        </div>
+
+        <a href="/" class="btn-home">Quay lại trang chủ</a>
     </div>
-</div>
 </body>
 </html>
