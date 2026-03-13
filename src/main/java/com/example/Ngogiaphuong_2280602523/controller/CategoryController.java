@@ -1,7 +1,7 @@
-package com.example.NgoDangKhoa_2280601515.controller;
+package com.example.Ngogiaphuong_2280602523.controller;
 
-import com.example.NgoDangKhoa_2280601515.model.Category;
-import com.example.NgoDangKhoa_2280601515.repository.CategoryRepository;
+import com.example.Ngogiaphuong_2280602523.model.Category;
+import com.example.Ngogiaphuong_2280602523.repository.CategoryRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

@@ -1,7 +1,7 @@
-package com.example.NgoDangKhoa_2280601515.controller;
+package com.example.Ngogiaphuong_2280602523.controller;
 
 
-import com.example.NgoDangKhoa_2280601515.model.SinhVien;
+import com.example.Ngogiaphuong_2280602523.model.SinhVien;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;

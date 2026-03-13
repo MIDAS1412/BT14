@@ -126,6 +126,11 @@
                 <label for="promotion" style="margin-bottom: 0; color: #d00;">Sản phẩm Khuyến mãi (Flash Sale)</label>
             </div>
 
+            <div class="form-group" id="flashSaleQuantityGroup" style="display: none;">
+                <label>Số lượng Flash Sale:</label>
+                <input type="number" id="flashSaleQuantity" min="1" placeholder="Ví dụ: 20">
+            </div>
+
             <div style="display: flex; gap: 10px;">
                 <button type="submit" id="submitBtn">Thêm Sản Phẩm</button>
                 <button type="button" id="cancelBtn" onclick="cancelEdit()"
@@ -145,6 +150,7 @@
                 <th>Giá</th>
                 <th>danh mục </th>
                 <th>Loại</th>
+                <th>Tồn Flash Sale</th>
                 <th>Hành động</th>
             </tr>
         </thead>
@@ -157,6 +163,20 @@
     <script th:src="@{/js/products.js}"></script>
     <script>
         let allProducts = [];
+
+        function getRemainingFlashSale(product) {
+            const total = Number(product.flashSaleQuantity || 0);
+            const sold = Number(product.flashSaleSold || 0);
+            return Math.max(total - sold, 0);
+        }
+
+        function toggleFlashSaleQuantityInput() {
+            const checked = document.getElementById('promotion').checked;
+            document.getElementById('flashSaleQuantityGroup').style.display = checked ? 'block' : 'none';
+            if (!checked) {
+                document.getElementById('flashSaleQuantity').value = '';
+            }
+        }
 
         async function loadCategories() {
             const select = document.getElementById('category');
@@ -193,6 +213,7 @@
                     <td>${Number(p.price).toLocaleString('vi-VN')}₫</td>
                     <td>${p.category || 'Không rõ'}</td>
                     <td><span style="color: ${p.promotion ? 'red' : 'inherit'}; font-weight: ${p.promotion ? 'bold' : 'normal'}">${p.promotion ? 'Khuyến mãi' : 'Thường'}</span></td>
+                    <td>${p.promotion ? getRemainingFlashSale(p) : '-'}</td>
                     <td>
                         <button style="background-color: #ffc107; color: black; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; margin-right: 5px;" onclick="editProduct(${p.id})">Sửa</button>
                         <button onclick="removeProduct(${p.id})" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px;">Xóa</button>
@@ -250,6 +271,8 @@
             document.getElementById('discount').value = product.discount || '';
             document.getElementById('category').value = product.category || '';
             document.getElementById('promotion').checked = !!product.promotion;
+            document.getElementById('flashSaleQuantity').value = product.flashSaleQuantity || '';
+            toggleFlashSaleQuantityInput();
             document.getElementById('imageFile').value = ''; // clear file selection
 
             const previewContainer = document.getElementById('imagePreviewContainer');
@@ -273,6 +296,7 @@
             document.getElementById('addProductForm').reset();
             document.getElementById('imagePreviewContainer').style.display = 'none';
             document.getElementById('previewImg').src = '';
+            toggleFlashSaleQuantityInput();
         }
 
         document.getElementById('addProductForm').addEventListener('submit', async function (e) {
@@ -304,6 +328,14 @@
                 }
 
                 // Step 2: Create product with image URL
+                const isPromotion = document.getElementById('promotion').checked;
+                const flashSaleQuantity = parseInt(document.getElementById('flashSaleQuantity').value, 10);
+                if (isPromotion && (!Number.isInteger(flashSaleQuantity) || flashSaleQuantity <= 0)) {
+                    throw new Error('Vui lòng nhập số lượng Flash Sale lớn hơn 0.');
+                }
+
+                const productId = document.getElementById('productId').value;
+                const editingProduct = productId ? allProducts.find(p => String(p.id) === String(productId)) : null;
                 const product = {
                     name: document.getElementById('name').value,
                     image: imageUrl, // this is empty if no new file is uploaded
@@ -311,10 +343,11 @@
                     oldPrice: parseFloat(document.getElementById('oldPrice').value) || 0,
                     discount: parseFloat(document.getElementById('discount').value) || 0,
                     category: document.getElementById('category').value,
-                    promotion: document.getElementById('promotion').checked,
+                    promotion: isPromotion,
+                    flashSaleQuantity: isPromotion ? flashSaleQuantity : 0,
+                    flashSaleSold: isPromotion ? Number(editingProduct?.flashSaleSold || 0) : 0,
                 };
 
-                const productId = document.getElementById('productId').value;
                 const method = productId ? 'PUT' : 'POST';
                 const url = productId ? `/api/products/${productId}` : '/api/products';
 
@@ -349,6 +382,8 @@
         });
 
         // Initial render
+        document.getElementById('promotion').addEventListener('change', toggleFlashSaleQuantityInput);
+        toggleFlashSaleQuantityInput();
         loadCategories();
         renderTable();
     </script>

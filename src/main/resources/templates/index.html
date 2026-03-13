@@ -28043,7 +28043,6 @@ body-theme-lunaryear
     <script src="js/products.js"></script>
     <script>
         (async function () {
-            // Function to format currency
             function formatCurrency(amount) {
                 return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount).replace('₫', '₫');
             }
@@ -28051,19 +28050,15 @@ body-theme-lunaryear
             const flashSaleContainer = document.querySelector('.listproduct.slider-flashsale');
             const dailyRecommended = document.getElementById('daily-recommended');
 
-            const products = await getProducts();
-
-            // --- GIỎ HÀNG LOGIC ---
-            window.addToCart = function (productId) {
-                const product = products.find(p => p.id == productId);
-                if (!product) return;
-
+            function addToLocalCart(product, quantity) {
                 const CART_KEY = 'tgdd_cart';
-                let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+                const qty = Number(quantity || 0);
+                if (!qty || qty <= 0) return;
 
-                let found = cart.find(item => item.id == productId);
+                let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+                const found = cart.find(item => item.id == product.id);
                 if (found) {
-                    found.quantity = (found.quantity || 1) + 1;
+                    found.quantity = Number(found.quantity || 0) + qty;
                 } else {
                     cart.push({
                         id: product.id,
@@ -28071,21 +28066,61 @@ body-theme-lunaryear
                         price: product.price,
                         oldPrice: product.oldPrice,
                         image: product.image,
-                        quantity: 1
+                        quantity: qty
                     });
                 }
 
                 localStorage.setItem(CART_KEY, JSON.stringify(cart));
-                window.location.href = '/cart';
-            };
+            }
 
-            if (flashSaleContainer) {
+            function getFlashSaleRemaining(product) {
+                const total = Number(product.flashSaleQuantity || 0);
+                const sold = Number(product.flashSaleSold || 0);
+                return Math.max(total - sold, 0);
+            }
+
+            async function updateProductFlashSaleState(product, purchasedQuantity) {
+                const total = Number(product.flashSaleQuantity || 0);
+                const sold = Number(product.flashSaleSold || 0);
+                const nextSold = sold + purchasedQuantity;
+                const stillInFlashSale = nextSold < total;
+
+                const payload = {
+                    name: product.name,
+                    image: product.image,
+                    price: Number(product.price || 0),
+                    oldPrice: Number(product.oldPrice || 0),
+                    discount: Number(product.discount || 0),
+                    category: product.categoryName || product.category || '',
+                    promotion: stillInFlashSale,
+                    flashSaleQuantity: stillInFlashSale ? total : 0,
+                    flashSaleSold: stillInFlashSale ? nextSold : 0,
+                    link: product.link || '#'
+                };
+
+                const updateRes = await fetch(`/api/products/${product.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!updateRes.ok) {
+                    const errorText = await updateRes.text();
+                    throw new Error(errorText || 'Không thể cập nhật tồn kho Flash Sale.');
+                }
+
+                return stillInFlashSale;
+            }
+
+            function renderFlashSale(products) {
+                if (!flashSaleContainer) return;
+
                 flashSaleContainer.innerHTML = '';
                 flashSaleContainer.classList.remove('slick-initialized', 'slick-slider', 'slick-dotted');
 
-                // Promotion products go to Flash Sale
-                const promoProducts = products.filter(p => p.promotion === true);
+                const promoProducts = products.filter(p => p.promotion === true && getFlashSaleRemaining(p) > 0);
                 promoProducts.forEach(p => {
+                    const remaining = getFlashSaleRemaining(p);
                     const discountElement = p.discount ?
                         `<span class="price-and-discount">
                             <label class="price-old black">${formatCurrency(p.oldPrice)}</label>
@@ -28103,9 +28138,13 @@ body-theme-lunaryear
                                     ${formatCurrency(p.price)}
                                     ${discountElement}
                                 </strong>
+                                <div class="fs-contain">
+                                    <span class="rq_count fscount"><b>Còn ${remaining}/${Number(p.flashSaleQuantity || 0)} suất</b></span>
+                                </div>
                             </a>
-                            <div class="btn-buy">
-                                <a href="javascript:void(0)" class="buy-now" onclick="addToCart(${p.id})">Mua ngay</a>
+                            <div class="btn-buy" style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="number" min="1" max="${remaining}" value="1" id="flash-qty-${p.id}" style="width: 100%; padding: 6px; box-sizing: border-box;" />
+                                <a href="javascript:void(0)" class="buy-now" onclick="buyFlashSale(${p.id})">Mua ngay</a>
                             </div>
                         </div>
                     `;
@@ -28113,36 +28152,88 @@ body-theme-lunaryear
                 });
             }
 
-            if (dailyRecommended) {
-                // Regular products go to Daily Recommended
-                const regularProducts = products.filter(p => !p.promotion);
-                if (regularProducts.length > 0) {
-                    dailyRecommended.classList.remove('hide');
-                    dailyRecommended.style.display = 'block';
-                    dailyRecommended.innerHTML = `
-                        <div class="box-common" style="margin-top: 20px;">
-                            <h3 style="font-size: 20px; font-weight: bold; padding: 10px 0;">Gợi ý cho bạn</h3>
-                            <ul class="listproduct block-list col6" style="list-style-type: none; display: flex; flex-wrap: wrap; gap: 15px; padding: 0;"></ul>
-                        </div>`;
-                    const listUl = dailyRecommended.querySelector('ul.listproduct');
+            function renderDailyRecommended(products) {
+                if (!dailyRecommended) return;
 
-                    regularProducts.forEach(p => {
-                        const itemHtml = `
-                            <li class="item" data-id="${p.id}" style="width: calc(16.66% - 15px); min-width: 170px; border: 1px solid #eee; border-radius: 8px; padding: 10px; background: #fff;">
-                                <div class="main-contain" style="text-decoration: none; color: #333; cursor: pointer;" onclick="addToCart(${p.id})">
-                                    <div class="item-img">
-                                        <img src="${p.image}" class="lazyload" alt="${p.name}" width="100%" style="display: block; border-radius: 4px;">
-                                    </div>
-                                    <h3 style="font-size: 14px; margin: 10px 0; height: 40px; overflow: hidden;">${p.name}</h3>
-                                    <strong class="price" style="color: #d0021b; font-size: 14px; display: block;">${formatCurrency(p.price)}</strong>
-                                    <button style="width:100%; border:1px solid #288ad6; color:#288ad6; background:none; padding:5px; border-radius:4px; margin-top:10px; cursor:pointer;">Mua ngay</button>
-                                </div>
-                            </li>
-                        `;
-                        listUl.insertAdjacentHTML('beforeend', itemHtml);
-                    });
+                const regularProducts = products.filter(p => !p.promotion);
+                if (regularProducts.length === 0) {
+                    dailyRecommended.classList.add('hide');
+                    dailyRecommended.innerHTML = '';
+                    return;
                 }
+
+                dailyRecommended.classList.remove('hide');
+                dailyRecommended.style.display = 'block';
+                dailyRecommended.innerHTML = `
+                    <div class="box-common" style="margin-top: 20px;">
+                        <h3 style="font-size: 20px; font-weight: bold; padding: 10px 0;">Gợi ý cho bạn</h3>
+                        <ul class="listproduct block-list col6" style="list-style-type: none; display: flex; flex-wrap: wrap; gap: 15px; padding: 0;"></ul>
+                    </div>`;
+                const listUl = dailyRecommended.querySelector('ul.listproduct');
+
+                regularProducts.forEach(p => {
+                    const itemHtml = `
+                        <li class="item" data-id="${p.id}" style="width: calc(16.66% - 15px); min-width: 170px; border: 1px solid #eee; border-radius: 8px; padding: 10px; background: #fff;">
+                            <div class="main-contain" style="text-decoration: none; color: #333; cursor: pointer;" onclick="addToCart(${p.id})">
+                                <div class="item-img">
+                                    <img src="${p.image}" class="lazyload" alt="${p.name}" width="100%" style="display: block; border-radius: 4px;">
+                                </div>
+                                <h3 style="font-size: 14px; margin: 10px 0; height: 40px; overflow: hidden;">${p.name}</h3>
+                                <strong class="price" style="color: #d0021b; font-size: 14px; display: block;">${formatCurrency(p.price)}</strong>
+                                <button style="width:100%; border:1px solid #288ad6; color:#288ad6; background:none; padding:5px; border-radius:4px; margin-top:10px; cursor:pointer;">Mua ngay</button>
+                            </div>
+                        </li>
+                    `;
+                    listUl.insertAdjacentHTML('beforeend', itemHtml);
+                });
             }
+
+            let products = await getProducts();
+
+            window.addToCart = function (productId) {
+                const product = products.find(p => p.id == productId);
+                if (!product) return;
+                addToLocalCart(product, 1);
+                window.location.href = '/cart';
+            };
+
+            window.buyFlashSale = async function (productId) {
+                const product = products.find(p => p.id == productId);
+                if (!product) return;
+
+                const quantityInput = document.getElementById(`flash-qty-${productId}`);
+                const desiredQty = parseInt(quantityInput?.value || '1', 10);
+                const remaining = getFlashSaleRemaining(product);
+
+                if (!Number.isInteger(desiredQty) || desiredQty <= 0) {
+                    alert('Vui lòng nhập số lượng hợp lệ.');
+                    return;
+                }
+
+                if (desiredQty > remaining) {
+                    alert(`Số lượng vượt quá tồn Flash Sale. Còn lại: ${remaining}`);
+                    return;
+                }
+
+                try {
+                    addToLocalCart(product, desiredQty);
+                    const stillInFlashSale = await updateProductFlashSaleState(product, desiredQty);
+                    products = await getProducts();
+                    renderFlashSale(products);
+                    renderDailyRecommended(products);
+
+                    if (!stillInFlashSale) {
+                        alert('Bạn đã mua hết số lượng Flash Sale. Sản phẩm đã tự động rời mục Flash Sale.');
+                    } else {
+                        alert('Đã thêm sản phẩm vào giỏ hàng.');
+                    }
+                } catch (error) {
+                    alert('Có lỗi khi cập nhật Flash Sale: ' + (error.message || 'Lỗi không xác định'));
+                }
+            };
+
+            renderFlashSale(products);
+            renderDailyRecommended(products);
         })();
     </script>
     <script async="async" defer="defer"

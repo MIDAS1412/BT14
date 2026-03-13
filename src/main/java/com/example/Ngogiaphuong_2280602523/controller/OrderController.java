@@ -1,9 +1,9 @@
-package com.example.NgoDangKhoa_2280601515.controller;
+package com.example.Ngogiaphuong_2280602523.controller;
 
-import com.example.NgoDangKhoa_2280601515.model.Order;
-import com.example.NgoDangKhoa_2280601515.model.OrderStatus;
-import com.example.NgoDangKhoa_2280601515.repository.OrderRepository;
-import com.example.NgoDangKhoa_2280601515.repository.ProductRepository;
+import com.example.Ngogiaphuong_2280602523.model.Order;
+import com.example.Ngogiaphuong_2280602523.model.OrderStatus;
+import com.example.Ngogiaphuong_2280602523.repository.OrderRepository;
+import com.example.Ngogiaphuong_2280602523.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

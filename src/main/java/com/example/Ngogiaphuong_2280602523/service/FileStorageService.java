@@ -1,4 +1,4 @@
-package com.example.NgoDangKhoa_2280601515.service;
+package com.example.Ngogiaphuong_2280602523.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

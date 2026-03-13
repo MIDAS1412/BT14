@@ -1,4 +1,4 @@
-package com.example.NgoDangKhoa_2280601515.controller;
+package com.example.Ngogiaphuong_2280602523.controller;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;

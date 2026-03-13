@@ -1,9 +1,9 @@
-package com.example.NgoDangKhoa_2280601515.controller;
+package com.example.Ngogiaphuong_2280602523.controller;
 
-import com.example.NgoDangKhoa_2280601515.model.Category;
-import com.example.NgoDangKhoa_2280601515.model.Product;
-import com.example.NgoDangKhoa_2280601515.repository.CategoryRepository;
-import com.example.NgoDangKhoa_2280601515.repository.ProductRepository;
+import com.example.Ngogiaphuong_2280602523.model.Category;
+import com.example.Ngogiaphuong_2280602523.model.Product;
+import com.example.Ngogiaphuong_2280602523.repository.CategoryRepository;
+import com.example.Ngogiaphuong_2280602523.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -72,22 +73,12 @@ public class ApiProductController {
 
         for (ProductDTO dto : products) {
             Product product = new Product();
-            product.setName(dto.getName());
-            product.setPrice(dto.getPrice());
-            product.setOldPrice(dto.getOldPrice());
-            product.setDiscount(dto.getDiscount());
-            product.setImage(dto.getImage());
-            product.setLink(dto.getLink());
-            product.setPromotion(dto.getPromotion() != null && dto.getPromotion());
-
-            if (dto.getCategory() != null && !dto.getCategory().isEmpty()) {
-                Category cat = categoryRepository.findAll().stream()
-                        .filter(c -> c.getName() != null && c.getName().equalsIgnoreCase(dto.getCategory()))
-                        .findFirst()
-                        .orElse(null);
-                product.setCategory(cat);
-                product.setCategoryName(dto.getCategory());
+            Map<String, String> validation = validateFlashSalePayload(dto);
+            if (!validation.isEmpty()) {
+                return ResponseEntity.badRequest().body(validation);
             }
+
+            applyDtoToProduct(product, dto);
             productRepository.save(product);
         }
 
@@ -95,52 +86,30 @@ public class ApiProductController {
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody ProductDTO dto) {
-        Product product = new Product();
-        product.setName(dto.getName());
-        product.setPrice(dto.getPrice());
-        product.setOldPrice(dto.getOldPrice());
-        product.setDiscount(dto.getDiscount());
-        product.setImage(dto.getImage());
-        product.setLink(dto.getLink());
-        product.setPromotion(dto.getPromotion() != null && dto.getPromotion());
-
-        if (dto.getCategory() != null && !dto.getCategory().isEmpty()) {
-            Category cat = categoryRepository.findAll().stream()
-                    .filter(c -> c.getName() != null && c.getName().equalsIgnoreCase(dto.getCategory()))
-                    .findFirst()
-                    .orElse(null);
-            product.setCategory(cat);
-            product.setCategoryName(dto.getCategory());
+    public ResponseEntity<?> createProduct(@RequestBody ProductDTO dto) {
+        Map<String, String> validation = validateFlashSalePayload(dto);
+        if (!validation.isEmpty()) {
+            return ResponseEntity.badRequest().body(validation);
         }
-        return productRepository.save(product);
+
+        Product product = new Product();
+        applyDtoToProduct(product, dto);
+        return ResponseEntity.ok(productRepository.save(product));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody ProductDTO dto) {
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody ProductDTO dto) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
 
-        product.setName(dto.getName());
-        product.setPrice(dto.getPrice());
-        product.setOldPrice(dto.getOldPrice());
-        product.setDiscount(dto.getDiscount());
-        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
-            product.setImage(dto.getImage()); // Only update image if new one provided
+        Map<String, String> validation = validateFlashSalePayload(dto);
+        if (!validation.isEmpty()) {
+            return ResponseEntity.badRequest().body(validation);
         }
-        product.setLink(dto.getLink());
-        product.setPromotion(dto.getPromotion() != null && dto.getPromotion());
 
-        if (dto.getCategory() != null && !dto.getCategory().isEmpty()) {
-            Category cat = categoryRepository.findAll().stream()
-                    .filter(c -> c.getName() != null && c.getName().equalsIgnoreCase(dto.getCategory()))
-                    .findFirst()
-                    .orElse(null);
-            product.setCategory(cat);
-            product.setCategoryName(dto.getCategory());
-        }
+        applyDtoToProduct(product, dto);
 
         return ResponseEntity.ok(productRepository.save(product));
     }
@@ -149,6 +118,59 @@ public class ApiProductController {
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         productRepository.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    private void applyDtoToProduct(Product product, ProductDTO dto) {
+        product.setName(dto.getName());
+        product.setPrice(dto.getPrice());
+        product.setOldPrice(dto.getOldPrice());
+        product.setDiscount(dto.getDiscount());
+        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
+            product.setImage(dto.getImage());
+        }
+        product.setLink(dto.getLink());
+
+        boolean isPromotion = dto.getPromotion() != null && dto.getPromotion();
+        product.setPromotion(isPromotion);
+        if (isPromotion) {
+            product.setFlashSaleQuantity(dto.getFlashSaleQuantity());
+            product.setFlashSaleSold(dto.getFlashSaleSold() != null ? dto.getFlashSaleSold() : 0);
+        } else {
+            product.setFlashSaleQuantity(0);
+            product.setFlashSaleSold(0);
+        }
+
+        Category category = resolveCategory(dto.getCategory());
+        product.setCategory(category);
+        product.setCategoryName(dto.getCategory());
+    }
+
+    private Category resolveCategory(String categoryName) {
+        if (categoryName == null || categoryName.isEmpty()) {
+            return null;
+        }
+
+        return categoryRepository.findAll().stream()
+                .filter(c -> c.getName() != null && c.getName().equalsIgnoreCase(categoryName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private Map<String, String> validateFlashSalePayload(ProductDTO dto) {
+        Map<String, String> errors = new HashMap<>();
+        boolean isPromotion = dto.getPromotion() != null && dto.getPromotion();
+        if (isPromotion) {
+            Integer quantity = dto.getFlashSaleQuantity();
+            if (quantity == null || quantity <= 0) {
+                errors.put("error", "Sản phẩm Flash Sale phải có số lượng lớn hơn 0.");
+            }
+
+            Integer sold = dto.getFlashSaleSold();
+            if (sold != null && sold < 0) {
+                errors.put("error", "Số lượng đã bán không hợp lệ.");
+            }
+        }
+        return errors;
     }
 }
 
@@ -159,6 +181,8 @@ class ProductDTO {
     private double discount;
     private String image;
     private Boolean promotion;
+    private Integer flashSaleQuantity;
+    private Integer flashSaleSold;
     private String category;
     private String link;
 
@@ -217,6 +241,22 @@ class ProductDTO {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Integer getFlashSaleQuantity() {
+        return flashSaleQuantity;
+    }
+
+    public void setFlashSaleQuantity(Integer flashSaleQuantity) {
+        this.flashSaleQuantity = flashSaleQuantity;
+    }
+
+    public Integer getFlashSaleSold() {
+        return flashSaleSold;
+    }
+
+    public void setFlashSaleSold(Integer flashSaleSold) {
+        this.flashSaleSold = flashSaleSold;
     }
 
     public String getLink() {

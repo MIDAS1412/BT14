@@ -1,4 +1,4 @@
-package com.example.NgoDangKhoa_2280601515.config;
+package com.example.Ngogiaphuong_2280602523.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

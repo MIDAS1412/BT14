@@ -1,4 +1,4 @@
-package com.example.NgoDangKhoa_2280601515.model;
+package com.example.Ngogiaphuong_2280602523.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +23,12 @@ public class Product {
 
     @Column(name = "is_promotion")
     private Boolean promotion; 
+
+    @Column(name = "flash_sale_quantity")
+    private Integer flashSaleQuantity;
+
+    @Column(name = "flash_sale_sold")
+    private Integer flashSaleSold;
 
     private double oldPrice;
     private double discount;
