@@ -5,6 +5,7 @@ import com.example.NgoDangKhoa_2280601515.model.OrderStatus;
 import com.example.NgoDangKhoa_2280601515.model.Product;
 import com.example.NgoDangKhoa_2280601515.repository.OrderRepository;
 import com.example.NgoDangKhoa_2280601515.repository.ProductRepository;
+import com.example.NgoDangKhoa_2280601515.service.RewardService;
 import java.util.List;
 import com.mservice.config.Environment;
 import com.mservice.enums.RequestType;
@@ -30,6 +31,9 @@ public class MomoController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private RewardService rewardService;
 
     @GetMapping("/pay/{orderId}")
     public RedirectView payOrder(@PathVariable Long orderId) throws Exception {
@@ -111,6 +115,12 @@ public class MomoController {
                             long amountValue = Long.parseLong(amount);
                             long points = (amountValue / 15000) * 2;
                             model.addAttribute("points", points);
+                            
+                            // Tích điểm vào hệ thống nếu có email khách hàng
+                            if (order.getCustomerEmail() != null && !order.getCustomerEmail().isEmpty() && points > 0) {
+                                rewardService.earnPoints(order.getCustomerEmail(), (int) points, 
+                                        "Tích điểm đơn hàng #" + order.getId() + " (" + amountValue + "₫)");
+                            }
                         }
                     } else {
                         order.setStatus(OrderStatus.CANCELLED);

@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đổi Điểm Tích Lũy - Voucher</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-left a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+        .header-left a:hover { color: white; }
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }
+        .user-badge i { color: #fbbf24; }
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.4);
+            color: white;
+        }
+
+        /* Points Display in header */
+        .points-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.1));
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .points-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .points-icon-lg {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+        }
+        .points-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 4px;
+        }
+        .points-value {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .points-unit {
+            font-size: 14px;
+            font-weight: 500;
+            -webkit-text-fill-color: rgba(255,255,255,0.5);
+        }
+        .points-rate {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            line-height: 1.6;
+        }
+        .points-rate strong {
+            color: #fbbf24;
+        }
+
+        /* ========== TABS ========== */
+        .tabs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 24px 0;
+        }
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255,255,255,0.04);
+            padding: 4px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #4338ca, #6366f1);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .tab-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.7);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ========== VOUCHER GRID ========== */
+        .content-area {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .voucher-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+        .voucher-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .voucher-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        }
+        .voucher-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: linear-gradient(90deg, #f59e0b, #ef4444, #8b5cf6);
+        }
+        .voucher-body {
+            padding: 24px;
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+        }
+        .voucher-img-wrap {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .voucher-img-wrap img {
+            width: 36px; height: 36px;
+            object-fit: contain;
+        }
+        .voucher-info { flex: 1; }
+        .voucher-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 6px;
+        }
+        .voucher-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .voucher-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .meta-tag.points {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        .meta-tag.expiry {
+            background: rgba(99, 102, 241, 0.1);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .meta-tag.remaining {
+            background: rgba(34, 197, 94, 0.1);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .voucher-footer {
+            padding: 16px 24px;
+            background: rgba(255,255,255,0.02);
+            border-top: 1px solid rgba(255,255,255,0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .voucher-points-cost {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .voucher-points-cost span {
+            font-size: 12px;
+            font-weight: 500;
+            -webkit-text-fill-color: rgba(255,255,255,0.4);
+        }
+        .btn-redeem {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-redeem:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+        .btn-redeem:disabled {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.2);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ========== HISTORY TABLE ========== */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .history-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s;
+        }
+        .history-item:hover {
+            background: rgba(255,255,255,0.06);
+        }
+        .history-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .history-icon.earn {
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+        }
+        .history-icon.redeem {
+            background: rgba(239, 68, 68, 0.12);
+            color: #fb7185;
+        }
+        .history-info { flex: 1; }
+        .history-desc {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 4px;
+        }
+        .history-date {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+        }
+        .history-points {
+            font-size: 16px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .history-points.positive { color: #4ade80; }
+        .history-points.negative { color: #fb7185; }
+
+        /* ========== MY VOUCHERS ========== */
+        .my-voucher-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s;
+        }
+        .my-voucher-card:hover {
+            background: rgba(255,255,255,0.06);
+        }
+        .my-voucher-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #a5b4fc;
+            flex-shrink: 0;
+        }
+        .my-voucher-info { flex: 1; }
+        .my-voucher-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 4px;
+        }
+        .my-voucher-date {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+        }
+        .my-voucher-code {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px dashed rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .my-voucher-code:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+        .my-voucher-code .copy-tooltip {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fbbf24;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .my-voucher-code:hover .copy-tooltip {
+            opacity: 1;
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-state i {
+            font-size: 60px;
+            color: rgba(255,255,255,0.08);
+            margin-bottom: 20px;
+        }
+        .empty-state h3 {
+            font-size: 18px;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .empty-state p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.2);
+        }
+
+        /* ========== ALERTS ========== */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            animation: slideDown 0.4s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+        .alert-success i { color: #4ade80; font-size: 20px; }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        .alert-error i { color: #f87171; font-size: 20px; }
+
+        .new-voucher-highlight {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(34, 197, 94, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: popIn 0.5s ease-out;
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .new-voucher-highlight h3 {
+            color: #fbbf24;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        .new-voucher-highlight .code-display {
+            background: rgba(0,0,0,0.3);
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 22px;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            letter-spacing: 2px;
+            border: 2px dashed rgba(245, 158, 11, 0.4);
+            cursor: pointer;
+        }
+        .new-voucher-highlight .code-display:hover {
+            background: rgba(0,0,0,0.4);
+        }
+        .new-voucher-highlight p {
+            margin-top: 10px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* ========== MODAL ========== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 460px;
+            width: 90%;
+            text-align: center;
+            animation: modalIn 0.3s ease-out;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            margin: 0 auto 20px;
+        }
+        .modal-icon.otp-icon {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+        .modal-icon.success-icon {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+        .modal-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .modal-points-info {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 16px 0;
+            font-size: 15px;
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .modal-btn.cancel {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-btn.cancel:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+        }
+        .modal-btn.confirm:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+        .modal-btn.otp-send {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+        .modal-btn.otp-send:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+        }
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ========== OTP INPUT ========== */
+        .otp-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 24px 0 16px;
+        }
+        .otp-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+            caret-color: #fbbf24;
+        }
+        .otp-input:focus {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        .otp-input.error {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            animation: shake 0.4s ease-out;
+        }
+        .otp-input.success {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        /* OTP Timer */
+        .otp-timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        .otp-timer .timer-text {
+            color: rgba(255,255,255,0.4);
+        }
+        .otp-timer .timer-value {
+            color: #fbbf24;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+        }
+        .otp-timer .timer-expired {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        .btn-resend {
+            background: none;
+            border: none;
+            color: #6366f1;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            font-family: 'Inter', sans-serif;
+            transition: color 0.3s;
+        }
+        .btn-resend:hover { color: #818cf8; }
+        .btn-resend:disabled {
+            color: rgba(255,255,255,0.2);
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        /* Modal step visibility */
+        .modal-step { display: none; }
+        .modal-step.active { display: block; }
+
+        /* OTP Error message */
+        .otp-error {
+            color: #f87171;
+            font-size: 13px;
+            margin-top: 8px;
+            min-height: 20px;
+            transition: opacity 0.3s;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px 24px;
+            min-width: 320px;
+            max-width: 400px;
+            z-index: 2000;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: slideInRight 0.4s ease-out;
+            display: none;
+        }
+        .toast.active { display: block; }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .toast-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .toast-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        .toast-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+        .toast-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+        .toast-close {
+            position: absolute;
+            top: 12px; right: 12px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .toast-close:hover { color: white; }
+        .toast-body {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px dashed rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .toast-otp-code {
+            font-size: 32px;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 8px;
+            color: #a5b4fc;
+            animation: pulse-code 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-code {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .toast-footer {
+            margin-top: 10px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+        }
+
+        /* Success modal content */
+        .success-voucher-code {
+            background: rgba(0,0,0,0.3);
+            display: inline-block;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+            letter-spacing: 2px;
+            border: 2px dashed rgba(245, 158, 11, 0.4);
+            cursor: pointer;
+            margin: 16px 0;
+            transition: all 0.3s;
+        }
+        .success-voucher-code:hover {
+            background: rgba(0,0,0,0.4);
+            border-color: rgba(245, 158, 11, 0.6);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .voucher-grid {
+                grid-template-columns: 1fr;
+            }
+            .points-banner {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .points-info {
+                justify-content: center;
+            }
+            .header-top {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .tabs {
+                flex-direction: column;
+            }
+            .my-voucher-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .otp-input {
+                width: 42px;
+                height: 52px;
+                font-size: 20px;
+            }
+            .toast {
+                right: 12px;
+                left: 12px;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-top">
+            <div class="header-left">
+                <a href="/"><i class="fas fa-arrow-left"></i></a>
+                <span class="header-title"><i class="fas fa-gift" style="margin-right:8px; color:#fbbf24"></i>Đổi Điểm Tích Lũy</span>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${name}">Khách hàng</span>
+                </div>
+                <a th:href="@{/rewards/logout}" class="btn-logout">
+                    <i class="fas fa-sign-out-alt" style="margin-right:4px"></i> Đăng xuất
+                </a>
+            </div>
+        </div>
+        <div class="points-banner">
+            <div class="points-info">
+                <div class="points-icon-lg">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div>
+                    <div class="points-label">Điểm tích lũy hiện tại</div>
+                    <div class="points-value" th:text="${totalPoints}">0 <span class="points-unit">điểm</span></div>
+                </div>
+            </div>
+            <div class="points-rate">
+                <i class="fas fa-info-circle" style="margin-right:4px"></i> Quy đổi: <strong>2 điểm = 15.000₫</strong><br>
+                Tích điểm khi thanh toán qua MoMo
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('vouchers')" id="tab-vouchers">
+                <i class="fas fa-ticket-alt"></i> Đổi Voucher
+            </button>
+            <button class="tab-btn" onclick="switchTab('my-vouchers')" id="tab-my-vouchers">
+                <i class="fas fa-wallet"></i> Voucher Của Tôi
+                <span th:if="${redeemedVouchers != null && !redeemedVouchers.isEmpty()}"
+                      style="background:#ef4444; color:white; padding:2px 7px; border-radius:10px; font-size:11px"
+                      th:text="${redeemedVouchers.size()}"></span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('history')" id="tab-history">
+                <i class="fas fa-clock-rotate-left"></i> Lịch Sử
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-area">
+
+        <!-- Alerts -->
+        <div class="alert alert-success" th:if="${success}">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div class="alert alert-error" th:if="${error}">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${error}"></span>
+        </div>
+
+        <!-- New voucher code highlight -->
+        <div class="new-voucher-highlight" th:if="${newVoucherCode}">
+            <h3><i class="fas fa-party-horn" style="margin-right:6px"></i> Mã Voucher Mới Của Bạn</h3>
+            <div class="code-display" th:text="${newVoucherCode}" onclick="copyCode(this)"></div>
+            <p><i class="fas fa-copy" style="margin-right:4px"></i> Nhấn vào mã để sao chép</p>
+        </div>
+
+        <!-- Tab 1: Voucher Grid -->
+        <div class="tab-content active" id="content-vouchers">
+            <div class="voucher-grid" th:if="${vouchers != null && !vouchers.isEmpty()}">
+                <div class="voucher-card" th:each="voucher : ${vouchers}">
+                    <div class="voucher-body">
+                        <div class="voucher-img-wrap">
+                            <img th:src="${voucher.image}" alt="Voucher" onerror="this.src='https://cdn-icons-png.flaticon.com/512/726/726476.png'">
+                        </div>
+                        <div class="voucher-info">
+                            <div class="voucher-name" th:text="${voucher.name}">Voucher Name</div>
+                            <div class="voucher-desc" th:text="${voucher.description}">Description</div>
+                            <div class="voucher-meta">
+                                <span class="meta-tag points">
+                                    <i class="fas fa-coins"></i>
+                                    <span th:text="${voucher.pointsRequired} + ' điểm'"></span>
+                                </span>
+                                <span class="meta-tag remaining">
+                                    <i class="fas fa-box"></i>
+                                    Còn <span th:text="${voucher.remainingQuantity}"></span>
+                                </span>
+                                <span class="meta-tag expiry" th:if="${voucher.expiryDate != null}">
+                                    <i class="fas fa-calendar"></i>
+                                    HSD: <span th:text="${#temporals.format(voucher.expiryDate, 'dd/MM/yyyy')}"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="voucher-footer">
+                        <div class="voucher-points-cost">
+                            <span th:text="${voucher.pointsRequired}"></span> <span>điểm</span>
+                        </div>
+                        <button class="btn-redeem"
+                                th:disabled="${totalPoints < voucher.pointsRequired}"
+                                th:data-voucher-id="${voucher.id}"
+                                th:data-voucher-name="${voucher.name}"
+                                th:data-voucher-points="${voucher.pointsRequired}"
+                                onclick="handleRedeemClick(this)">
+                            <span th:if="${totalPoints >= voucher.pointsRequired}">
+                                <i class="fas fa-exchange-alt" style="margin-right:4px"></i> Đổi ngay
+                            </span>
+                            <span th:if="${totalPoints < voucher.pointsRequired}">
+                                <i class="fas fa-lock" style="margin-right:4px"></i> Thiếu điểm
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-state" th:if="${vouchers == null || vouchers.isEmpty()}">
+                <i class="fas fa-ticket-alt"></i>
+                <h3>Chưa có voucher nào</h3>
+                <p>Hiện tại chưa có voucher khả dụng. Hãy quay lại sau!</p>
+            </div>
+        </div>
+
+        <!-- Tab 2: My Vouchers -->
+        <div class="tab-content" id="content-my-vouchers">
+            <div th:if="${redeemedVouchers != null && !redeemedVouchers.isEmpty()}">
+                <div class="my-voucher-card" th:each="tx : ${redeemedVouchers}">
+                    <div class="my-voucher-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="my-voucher-info">
+                        <div class="my-voucher-name" th:text="${tx.voucher != null ? tx.voucher.name : tx.description}">Voucher</div>
+                        <div class="my-voucher-date">
+                            <i class="fas fa-clock" style="margin-right:4px"></i>
+                            <span th:text="${#temporals.format(tx.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                            &nbsp;·&nbsp; Đã dùng <span th:text="${Math.abs(tx.points)}"></span> điểm
+                        </div>
+                    </div>
+                    <div class="my-voucher-code" onclick="copyCode(this)" style="cursor:pointer; background:rgba(99,102,241,0.15); padding:10px 15px; border-radius:8px; display:inline-flex; align-items:center; border:1px dashed #6366f1;">
+                        <span class="copy-tooltip">📋 Nhấn để sao chép</span>
+                        <span th:text="${tx.voucherCode}" style="font-family:monospace; font-weight:bold; letter-spacing:2px; font-size:16px;">CODE</span>
+                        <i class="fas fa-copy" style="margin-left:10px; color:#6366f1;"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-state" th:if="${redeemedVouchers == null || redeemedVouchers.isEmpty()}">
+                <i class="fas fa-wallet"></i>
+                <h3>Chưa có voucher nào</h3>
+                <p>Bạn chưa đổi voucher nào. Hãy tích điểm và đổi voucher!</p>
+            </div>
+        </div>
+
+        <!-- Tab 3: History -->
+        <div class="tab-content" id="content-history">
+            <div class="history-list" th:if="${history != null && !history.isEmpty()}">
+                <div class="history-item" th:each="tx : ${history}">
+                    <div class="history-icon" th:classappend="${tx.type.name() == 'EARN' ? 'earn' : 'redeem'}">
+                        <i th:class="${tx.type.name() == 'EARN' ? 'fas fa-arrow-down' : 'fas fa-arrow-up'}"></i>
+                    </div>
+                    <div class="history-info">
+                        <div class="history-desc" th:text="${tx.description}">Transaction</div>
+                        <div class="history-date" th:text="${#temporals.format(tx.createdAt, 'dd/MM/yyyy HH:mm')}">Date</div>
+                    </div>
+                    <div class="history-points"
+                         th:classappend="${tx.points > 0 ? 'positive' : 'negative'}"
+                         th:text="${(tx.points > 0 ? '+' : '') + tx.points + ' điểm'}">+0 điểm</div>
+                </div>
+            </div>
+            <div class="empty-state" th:if="${history == null || history.isEmpty()}">
+                <i class="fas fa-clock-rotate-left"></i>
+                <h3>Chưa có lịch sử</h3>
+                <p>Lịch sử tích điểm và đổi voucher sẽ hiển thị ở đây.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div class="modal-overlay" id="redeemModal">
+        <div class="modal-box">
+
+            <!-- STEP 1: Xác nhận & Gửi OTP -->
+            <div class="modal-step active" id="step-confirm">
+                <div class="modal-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="modal-title">Xác thực OTP để đổi voucher</div>
+                <div class="modal-desc">Bạn muốn đổi voucher</div>
+                <div class="modal-desc" id="modal-voucher-name" style="font-weight:700; color:white; font-size:16px"></div>
+                <div class="modal-points-info">
+                    <i class="fas fa-coins" style="margin-right:6px"></i>
+                    Sử dụng <span id="modal-points-cost"></span> điểm
+                </div>
+                <div class="modal-desc" style="margin-top:12px">
+                    <i class="fas fa-envelope" style="margin-right:4px; color:#6366f1"></i>
+                    Mã OTP sẽ được gửi đến email của bạn
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn cancel" onclick="closeModal()">Hủy bỏ</button>
+                    <button class="modal-btn otp-send" id="btnSendOtp" onclick="sendOtp()">
+                        <i class="fas fa-paper-plane" style="margin-right:6px"></i> Gửi mã OTP
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Nhập OTP -->
+            <div class="modal-step" id="step-otp">
+                <div class="modal-icon otp-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <div class="modal-title">Nhập mã OTP</div>
+                <div class="modal-desc">Nhập mã 6 chữ số đã được gửi đến email của bạn</div>
+
+                <!-- OTP Input Fields -->
+                <div class="otp-container">
+                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="0" autofocus>
+                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="1">
+                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="2">
+                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="3">
+                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="4">
+                    <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="5">
+                </div>
+
+                <!-- Error message -->
+                <div class="otp-error" id="otpError"></div>
+
+                <!-- Timer -->
+                <div class="otp-timer">
+                    <span class="timer-text">Mã hết hạn sau:</span>
+                    <span class="timer-value" id="otpTimer">02:00</span>
+                </div>
+
+                <!-- Resend -->
+                <button class="btn-resend" id="btnResend" onclick="sendOtp()" disabled>
+                    <i class="fas fa-redo" style="margin-right:4px"></i> Gửi lại mã OTP
+                </button>
+
+                <div class="modal-actions">
+                    <button class="modal-btn cancel" onclick="closeModal()">Hủy bỏ</button>
+                    <button class="modal-btn confirm" id="btnVerifyOtp" onclick="verifyOtp()">
+                        <i class="fas fa-check-circle" style="margin-right:6px"></i> Xác nhận đổi
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Thành công -->
+            <div class="modal-step" id="step-success">
+                <div class="modal-icon success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="modal-title" style="color:#4ade80">Đổi voucher thành công!</div>
+                <div class="modal-desc">Mã voucher của bạn:</div>
+                <div class="success-voucher-code" id="successVoucherCode" onclick="copyCode(this)"></div>
+                <div class="modal-desc">
+                    <i class="fas fa-copy" style="margin-right:4px; color:#6366f1"></i>
+                    Nhấn vào mã để sao chép
+                </div>
+                <div class="modal-actions" style="justify-content:center">
+                    <button class="modal-btn confirm" onclick="window.location.reload()" style="max-width:200px">
+                        <i class="fas fa-home" style="margin-right:6px"></i> Xong
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Email Sent Toast Notification -->
+    <div class="toast" id="otpToast">
+        <button class="toast-close" onclick="closeToast()"><i class="fas fa-times"></i></button>
+        <div class="toast-header">
+            <div class="toast-icon">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <div>
+                <div class="toast-title">Đã gửi mã OTP</div>
+                <div class="toast-subtitle" id="toastEmail">Kiểm tra email của bạn</div>
+            </div>
+        </div>
+        <div class="toast-body">
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                <i class="fas fa-check-circle" style="color:#4ade80; font-size:24px;"></i>
+                <span style="color:#86efac; font-size:15px; font-weight:600;">Mã OTP đã gửi qua Email</span>
+            </div>
+            <p style="color:rgba(255,255,255,0.35); font-size:12px; margin-top:10px; margin-bottom:0;">
+                <i class="fas fa-clock" style="margin-right:4px"></i> Mã có hiệu lực trong 2 phút
+            </p>
+        </div>
+        <div class="toast-footer">
+            <i class="fas fa-info-circle" style="margin-right:4px"></i>
+            Kiểm tra hộp thư đến và thư mục Spam
+        </div>
+    </div>
+
+    <script>
+        // ========== GLOBAL STATE ==========
+        let currentVoucherId = null;
+        let currentVoucherName = '';
+        let currentPointsCost = 0;
+        let otpTimerInterval = null;
+        let otpTimeLeft = 120; // 2 minutes in seconds
+
+        // ========== TAB SWITCHING ==========
+        // ========== TAB SWITCHING ==========
+        function switchTab(tabName) {
+            try {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById('tab-' + tabName).classList.add('active');
+                document.getElementById('content-' + tabName).classList.add('active');
+            } catch(e) {
+                console.error('Lỗi switchTab:', e);
+                alert('Có lỗi khi chuyển tab: ' + e.message);
+            }
+        }
+
+        // ========== MODAL ==========
+        function handleRedeemClick(btn) {
+            try {
+                var btnEl = btn.closest('.btn-redeem') || btn;
+                var id = parseInt(btnEl.getAttribute('data-voucher-id'));
+                var name = btnEl.getAttribute('data-voucher-name');
+                var points = parseInt(btnEl.getAttribute('data-voucher-points'));
+                
+                if (isNaN(id) || !name) {
+                    alert('Lỗi dữ liệu voucher!');
+                    return;
+                }
+                showRedeemModal(id, name, points);
+            } catch(e) {
+                console.error('Lỗi nhận diện nút:', e);
+                alert('Không xử lý được sự kiện đổi mã: ' + e.message);
+            }
+        }
+
+        function showRedeemModal(voucherId, voucherName, pointsCost) {
+            currentVoucherId = voucherId;
+            currentVoucherName = voucherName;
+            currentPointsCost = pointsCost;
+
+            document.getElementById('modal-voucher-name').textContent = voucherName;
+            document.getElementById('modal-points-cost').textContent = pointsCost;
+
+            // Reset to step 1
+            showStep('step-confirm');
+            clearOtpInputs();
+            clearOtpError();
+
+            document.getElementById('redeemModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('redeemModal').classList.remove('active');
+            closeToast();
+            stopTimer();
+            clearOtpInputs();
+            clearOtpError();
+        }
+
+        function showStep(stepId) {
+            document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('redeemModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // ========== OTP SEND ==========
+        function sendOtp() {
+            const btnSend = document.getElementById('btnSendOtp');
+            const btnResend = document.getElementById('btnResend');
+
+            // Disable buttons
+            if (btnSend) {
+                btnSend.disabled = true;
+                btnSend.innerHTML = '<span class="spinner"></span> Đang gửi...';
+            }
+            if (btnResend) btnResend.disabled = true;
+
+            fetch('/rewards/otp/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'voucherId=' + currentVoucherId
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Show step 2 (OTP input)
+                    showStep('step-otp');
+
+                    // Show email sent toast notification
+                    document.getElementById('toastEmail').textContent = data.message;
+                    document.getElementById('otpToast').classList.add('active');
+
+                    // Start countdown
+                    startTimer(data.expiryMinutes * 60);
+
+                    // Focus first OTP input
+                    setTimeout(() => {
+                        document.querySelector('.otp-input[data-index="0"]').focus();
+                    }, 100);
+
+                    // Auto-hide toast after 6 seconds
+                    setTimeout(() => closeToast(), 6000);
+                } else {
+                    showOtpError(data.message);
+                }
+            })
+            .catch(err => {
+                showOtpError('Có lỗi xảy ra. Vui lòng thử lại.');
+            })
+            .finally(() => {
+                // Re-enable send button
+                if (btnSend) {
+                    btnSend.disabled = false;
+                    btnSend.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:6px"></i> Gửi mã OTP';
+                }
+            });
+        }
+
+        // ========== OTP VERIFY ==========
+        function verifyOtp() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            let otp = '';
+            otpInputs.forEach(input => otp += input.value);
+
+            if (otp.length < 6) {
+                showOtpError('Vui lòng nhập đủ 6 chữ số OTP!');
+                otpInputs.forEach(i => i.classList.add('error'));
+                setTimeout(() => otpInputs.forEach(i => i.classList.remove('error')), 600);
+                return;
+            }
+
+            const btnVerify = document.getElementById('btnVerifyOtp');
+            btnVerify.disabled = true;
+            btnVerify.innerHTML = '<span class="spinner"></span> Đang xác thực...';
+
+            fetch('/rewards/otp/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'otp=' + otp + '&voucherId=' + currentVoucherId
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Success!
+                    otpInputs.forEach(i => i.classList.add('success'));
+                    closeToast();
+                    stopTimer();
+
+                    setTimeout(() => {
+                        showStep('step-success');
+                        document.getElementById('successVoucherCode').textContent = data.voucherCode;
+                    }, 500);
+                } else {
+                    // Error
+                    showOtpError(data.message);
+                    otpInputs.forEach(i => i.classList.add('error'));
+                    setTimeout(() => otpInputs.forEach(i => i.classList.remove('error')), 600);
+
+                    // If expired, enable resend and reset
+                    if (data.expired) {
+                        stopTimer();
+                        document.getElementById('otpTimer').textContent = 'Hết hạn!';
+                        document.getElementById('otpTimer').classList.add('timer-expired');
+                        document.getElementById('btnResend').disabled = false;
+                        closeToast();
+                    }
+
+                    btnVerify.disabled = false;
+                    btnVerify.innerHTML = '<i class="fas fa-check-circle" style="margin-right:6px"></i> Xác nhận đổi';
+                }
+            })
+            .catch(err => {
+                showOtpError('Có lỗi xảy ra. Vui lòng thử lại.');
+                btnVerify.disabled = false;
+                btnVerify.innerHTML = '<i class="fas fa-check-circle" style="margin-right:6px"></i> Xác nhận đổi';
+            });
+        }
+
+        // ========== OTP INPUT HANDLING ==========
+        document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
+            // Only allow numbers
+            input.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                clearOtpError();
+                if (this.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !this.value && index > 0) {
+                    inputs[index - 1].focus();
+                    inputs[index - 1].value = '';
+                }
+                // Enter to verify
+                if (e.key === 'Enter') {
+                    verifyOtp();
+                }
+            });
+
+            // Handle paste
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                for (let i = 0; i < paste.length && i < inputs.length; i++) {
+                    inputs[i].value = paste[i];
+                }
+                // Focus last filled or next empty
+                const focusIndex = Math.min(paste.length, inputs.length - 1);
+                inputs[focusIndex].focus();
+            });
+        });
+
+        function clearOtpInputs() {
+            document.querySelectorAll('.otp-input').forEach(input => {
+                input.value = '';
+                input.classList.remove('error', 'success');
+            });
+        }
+
+        function showOtpError(msg) {
+            document.getElementById('otpError').textContent = msg;
+        }
+        function clearOtpError() {
+            document.getElementById('otpError').textContent = '';
+        }
+
+        // ========== TIMER ==========
+        function startTimer(seconds) {
+            stopTimer();
+            otpTimeLeft = seconds;
+            updateTimerDisplay();
+
+            document.getElementById('btnResend').disabled = true;
+            document.getElementById('otpTimer').classList.remove('timer-expired');
+
+            otpTimerInterval = setInterval(() => {
+                otpTimeLeft--;
+                updateTimerDisplay();
+
+                if (otpTimeLeft <= 0) {
+                    stopTimer();
+                    document.getElementById('otpTimer').textContent = 'Hết hạn!';
+                    document.getElementById('otpTimer').classList.add('timer-expired');
+                    document.getElementById('btnResend').disabled = false;
+                    closeToast();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (otpTimerInterval) {
+                clearInterval(otpTimerInterval);
+                otpTimerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const min = Math.floor(otpTimeLeft / 60).toString().padStart(2, '0');
+            const sec = (otpTimeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('otpTimer').textContent = min + ':' + sec;
+        }
+
+        // ========== TOAST ==========
+        function closeToast() {
+            const toast = document.getElementById('otpToast');
+            toast.style.animation = 'none';
+            toast.offsetHeight; // trigger reflow
+            toast.style.animation = '';
+            toast.classList.remove('active');
+        }
+
+        // ========== COPY CODE ==========
+        function copyCode(element) {
+            try {
+                const code = element.textContent.trim().replace('📋 Nhấn để sao chép', '').trim();
+                const original = element.style.borderColor;
+
+                // Hàm hiệu ứng copy thành công
+                const copySuccess = () => {
+                    element.style.borderColor = '#4ade80';
+                    element.style.color = '#4ade80';
+                    setTimeout(() => {
+                        element.style.borderColor = original;
+                        element.style.color = '';
+                    }, 1500);
+                };
+
+                // Nếu trình duyệt hỗ trợ Clipboard API (HTTPS/localhost)
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(code).then(copySuccess).catch(err => {
+                        console.error('Không thể copy:', err);
+                        alert('Lỗi copy: ' + err);
+                    });
+                } else {
+                    // Xử lý fallback cho HTTP bình thường
+                    const textArea = document.createElement("textarea");
+                    textArea.value = code;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        copySuccess();
+                    } catch (err) {
+                        console.error('Không thể copy bằng execCommand', err);
+                    }
+                    textArea.remove();
+                }
+            } catch(e) {
+                console.error("Lỗi copy:", e);
+                alert("Lỗi copy mã: " + e.message);
+            }
+        }
+
+        // ========== AUTO DISMISS ALERTS ==========
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.style.transition = 'opacity 0.5s, transform 0.5s';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

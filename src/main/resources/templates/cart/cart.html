@@ -560,20 +560,22 @@
 
                 <!-- Rewards & Total -->
                 <div class="section-box">
-                    <div class="discount-selector" style="display:flex; justify-content:space-between; color:var(--primary-blue); margin-bottom:15px; font-size:14px; cursor:pointer;">
+                    <div class="discount-selector" onclick="document.getElementById('voucher-input-area').style.display='block'" style="display:flex; justify-content:space-between; color:var(--primary-blue); margin-bottom:15px; font-size:14px; cursor:pointer;">
                         <span><i class="fa-solid fa-ticket"></i> Chọn hoặc nhập mã giảm</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </div>
-                    <div class="switch-container">
-                        <span style="font-size:14px"><i class="fa-solid fa-medal" style="color:#ffd400"></i> Dùng điểm Quà Tặng VIP</span>
-                        <label class="switch">
-                            <input type="checkbox">
-                            <span class="slider"></span>
-                        </label>
+                    
+                    <div id="voucher-input-area" style="display:none; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 8px;">
+                        <div style="display:flex; gap: 8px;">
+                            <input type="text" id="voucherCode" placeholder="Nhập mã voucher của bạn..." style="flex:1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline:none; font-family:monospace;" />
+                            <button onclick="applyVoucher()" style="background:var(--primary-blue); color:white; border:none; padding:0 20px; border-radius:4px; cursor:pointer; font-weight:bold;">Áp dụng</button>
+                        </div>
+                        <div id="voucher-message" style="margin-top: 8px; font-size: 13px;"></div>
                     </div>
-                    <div class="total-row summary-row">
+
+                    <div class="total-row summary-row" id="final-total-row">
                         <span>Tổng tiền</span>
-                        <span style="color:#d0021b; font-size:19px">${formatCurrency(total)}</span>
+                        <span style="color:#d0021b; font-size:19px" id="final-total-price" data-raw-total="${total}">${formatCurrency(total)}</span>
                     </div>
                 </div>
 
@@ -614,12 +616,81 @@
             `;
         }
 
+        let appliedDiscount = 0;
+
+        function applyVoucher() {
+            const code = document.getElementById('voucherCode').value.trim();
+            const msgEl = document.getElementById('voucher-message');
+            if (!code) {
+                msgEl.style.color = "red";
+                msgEl.textContent = "Vui lòng nhập mã voucher!";
+                return;
+            }
+
+            msgEl.style.color = "#666";
+            msgEl.textContent = "Đang kiểm tra mã...";
+
+            fetch('/rewards/api/apply-voucher', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'code': code
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    msgEl.style.color = "green";
+                    msgEl.textContent = data.message;
+                    
+                    let totalEl = document.getElementById('final-total-price');
+                    let rawTotal = parseInt(totalEl.getAttribute('data-raw-total'));
+                    
+                    let discount = 0;
+                    if (data.discountAmount > 0) {
+                        discount = data.discountAmount;
+                    } else if (data.discountPercent > 0) {
+                        discount = (rawTotal * data.discountPercent) / 100;
+                        if (discount > data.maxDiscount) discount = data.maxDiscount;
+                    }
+
+                    appliedDiscount = discount;
+                    let finalTotal = rawTotal - discount;
+                    if (finalTotal < 0) finalTotal = 0;
+
+                    totalEl.innerHTML = `
+                         <div style="text-decoration:line-through; color:#999; font-size:14px;">${formatCurrency(rawTotal)}</div>
+                         <div>${formatCurrency(finalTotal)}</div>
+                    `;
+                } else {
+                    msgEl.style.color = "red";
+                    msgEl.textContent = data.message;
+                    appliedDiscount = 0;
+                    
+                    let totalEl = document.getElementById('final-total-price');
+                    let rawTotal = parseInt(totalEl.getAttribute('data-raw-total'));
+                    totalEl.innerHTML = formatCurrency(rawTotal);
+                }
+            })
+            .catch(err => {
+                msgEl.style.color = "red";
+                msgEl.textContent = "Lỗi kết nối server!";
+                console.error(err);
+            });
+        }
+
         function submitOrder() {
             const cart = getCart();
             if (cart.length === 0) return;
 
             let momoSelected = document.getElementById('pay1').checked;
             let total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+            
+            // Subtract applied voucher discount
+            total = total - appliedDiscount;
+            if (total < 0) total = 0;
 
             if (momoSelected) {
                 let form = document.createElement("form");

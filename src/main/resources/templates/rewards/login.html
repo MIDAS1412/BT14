@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Đổi điểm tích lũy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            overflow: hidden;
+            position: relative;
+        }
+        .particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: rgba(255, 215, 0, 0.4);
+            border-radius: 50%;
+            animation: float-up linear infinite;
+        }
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 50px 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-section { text-align: center; margin-bottom: 35px; }
+        .logo-icon {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px; color: white;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3); }
+            50% { box-shadow: 0 10px 40px rgba(245, 158, 11, 0.5); }
+        }
+        .logo-title { color: white; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .logo-subtitle { color: rgba(255, 255, 255, 0.5); font-size: 14px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block; color: rgba(255, 255, 255, 0.7);
+            font-size: 13px; font-weight: 500; margin-bottom: 8px; letter-spacing: 0.5px;
+        }
+        .input-wrapper { position: relative; }
+        .input-wrapper i {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.3); font-size: 16px; transition: color 0.3s;
+        }
+        .form-input {
+            width: 100%; padding: 15px 16px 15px 48px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; color: white; font-size: 15px;
+            font-family: 'Inter', sans-serif; outline: none; transition: all 0.3s ease;
+        }
+        .form-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+        .form-input:focus {
+            border-color: #f59e0b;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+        .input-wrapper:focus-within i { color: #f59e0b; }
+
+        .btn-login {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 600; font-family: 'Inter', sans-serif;
+            cursor: pointer; transition: all 0.3s ease;
+            margin-top: 10px; letter-spacing: 0.5px;
+            position: relative; overflow: hidden;
+        }
+        .btn-login::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn-login:hover::before { left: 100%; }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .register-link {
+            display: block; text-align: center; margin-top: 20px;
+            color: rgba(255, 255, 255, 0.5); font-size: 14px;
+        }
+        .register-link a {
+            color: #fbbf24; text-decoration: none; font-weight: 600;
+            transition: color 0.3s;
+        }
+        .register-link a:hover { color: #f59e0b; text-decoration: underline; }
+
+        .back-link {
+            display: block; text-align: center; margin-top: 20px;
+            color: rgba(255, 255, 255, 0.4); text-decoration: none;
+            font-size: 14px; transition: color 0.3s;
+        }
+        .back-link:hover { color: rgba(255, 255, 255, 0.8); }
+
+        .alert {
+            padding: 12px 16px; border-radius: 10px; font-size: 14px;
+            margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+            animation: shake 0.4s ease-out;
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;
+        }
+        .alert-success {
+            background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #86efac;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .features {
+            display: flex; justify-content: center; gap: 30px;
+            margin-top: 25px; padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .feature-item { text-align: center; }
+        .feature-item i { color: #f59e0b; font-size: 20px; margin-bottom: 6px; display: block; }
+        .feature-item span { color: rgba(255, 255, 255, 0.4); font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h1 class="logo-title">Đổi Điểm Tích Lũy</h1>
+                <p class="logo-subtitle">Đăng nhập để xem điểm và đổi voucher</p>
+            </div>
+
+            <!-- Error/Success messages -->
+            <div class="alert alert-error" th:if="${error}">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+            <div class="alert alert-success" th:if="${success}">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}"></span>
+            </div>
+
+            <form action="/login" method="POST" class="needs-validation">
+                <div class="form-group">
+                    <label class="form-label">EMAIL</label>
+                    <div class="input-wrapper">
+                        <input type="email" name="email" class="form-input" placeholder="Nhập email đã đăng ký" required>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">MẬT KHẨU</label>
+                    <div class="input-wrapper">
+                        <input type="password" name="password" class="form-input" placeholder="Nhập mật khẩu" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt" style="margin-right:8px"></i> Đăng nhập
+                </button>
+            </form>
+
+            <div class="register-link">
+                Chưa có tài khoản?
+                <a th:href="@{/register}">Đăng ký ngay</a>
+            </div>
+
+            <div class="features">
+                <div class="feature-item">
+                    <i class="fas fa-coins"></i>
+                    <span>Tích điểm</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Đổi voucher</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Bảo mật OTP</span>
+                </div>
+            </div>
+
+            <a href="/" class="back-link">
+                <i class="fas fa-arrow-left" style="margin-right:5px"></i> Quay lại trang chủ
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 6 + 4) + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particle.style.width = particle.style.height = (Math.random() * 4 + 3) + 'px';
+            container.appendChild(particle);
+        }
+    </script>
+</body>
+</html>
